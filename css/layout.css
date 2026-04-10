@@ -1,0 +1,102 @@
+/* ========================================
+   LAYOUT - Header, Footer, Container
+   ======================================== */
+
+/* Header */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Footer */
+.site-footer {
+    background: #0d0d0d;
+    padding: 2rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Logo */
+.site-header .logo,
+.site-footer .logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.site-header .logo {
+    color: #0d0d0d;
+}
+
+.site-footer .logo {
+    color: #fff;
+}
+
+/* Container Principal */
+.container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+/* Hero Section */
+.hero {
+    margin-bottom: 3rem;
+}
+
+/* ========================================
+   TELAS PEQUENAS (Mobile) - até 639px
+   ======================================== */
+@media (max-width: 639px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   TELAS MÉDIAS (Tablet) - 640px a 1023px
+   ======================================== */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .hero h1 {
+        font-size: 2.75rem;
+    }
+
+    .subtitle {
+        font-size: 1.0625rem;
+    }
+}
+
+/* ========================================
+   TELAS GRANDES (Desktop) - 1024px+
+   ======================================== */
+@media (min-width: 1024px) {
+    .hero h1 {
+        font-size: 3rem;
+    }
+
+    .subtitle {
+        font-size: 1.125rem;
+    }
+}

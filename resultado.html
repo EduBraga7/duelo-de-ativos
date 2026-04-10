@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duelo de Ativos - Resultados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/resultado.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- Hero Sticky com Ativos -->
+    <section class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Indicador de atualização em tempo real -->
+            <div class="flex items-center justify-end mb-2">
+                <div id="price-indicator" class="flex items-center gap-2 text-xs text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span>Preços atualizando</span>
+                </div>
+            </div>
+            <div id="assets-hero">
+                <!-- Colunas de ativos serão inseridas via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabela de Duelo -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Container com scroll horizontal quando necessário -->
+        <div id="table-container" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div id="comparison-table" class="divide-y divide-slate-100">
+                <!-- Linhas de comparação serão inseridas via JS -->
+            </div>
+        </div>
+
+        <!-- CTAs -->
+        <div id="cta-section" class="mt-8">
+            <!-- Botões CTA serão inseridos via JS -->
+        </div>
+    </main>
+
+    <!-- Footer injetado via components.js -->
+
+    <script type="module" src="js/resultado.js"></script>
+    <script src="js/components.js"></script>
+</body>
+</html>

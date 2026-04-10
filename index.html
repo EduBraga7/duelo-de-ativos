@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duelo de Ativos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos específicos da página inicial */
+        .vs-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            width: 40px;
+            height: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            background: #f1f5f9;
+            border-radius: 50%;
+            letter-spacing: 0.05em;
+        }
+        
+        .asset-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.75rem;
+            outline: none;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .asset-input:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+        }
+        
+        .btn-add {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            font-size: 1.5rem;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-add:hover:not(:disabled) {
+            border-color: #0f172a;
+            color: #0f172a;
+        }
+        
+        .btn-add:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            background: #0f172a;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+        }
+        
+        .error-message {
+            padding: 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            color: #dc2626;
+            font-size: 0.9375rem;
+        }
+        
+        .error-message.hidden {
+            display: none;
+        }
+        
+        /* Autocomplete Dropdown */
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            margin-top: 0.25rem;
+        }
+        
+        .autocomplete-dropdown.hidden {
+            display: none;
+        }
+        
+        .autocomplete-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background-color: #f1f5f9;
+        }
+        
+        .autocomplete-ticker {
+            font-weight: 600;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+        
+        .autocomplete-type {
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col">
+    <!-- Header injetado via components.js -->
+
+    <main class="flex-grow flex flex-col items-center justify-start px-4 py-8 pt-20">
+        <div class="w-full max-w-7xl mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-3">Novo Duelo</h1>
+                <p class="text-slate-500 text-lg">Coloque as melhores ações e FIIs no ringue. Compare indicadores lado a lado.</p>
+            </div>
+
+            <div class="max-w-md mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <form id="duel-form" class="duel-form">
+                <div id="assets-container" class="flex flex-col gap-2">
+                    <div class="autocomplete-container">
+                        <input type="text" class="asset-input" placeholder="Ativo A" maxlength="10" autocomplete="off">
+                        <ul class="autocomplete-dropdown hidden"></ul>
+                    </div>
+                    <span class="vs-badge">VS</span>
+                    <div class="autocomplete-container">
+                        <input type="text" class="asset-input" placeholder="Ativo B" maxlength="10" autocomplete="off">
+                        <ul class="autocomplete-dropdown hidden"></ul>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-4">
+                    <button type="button" id="add-asset-btn" class="btn-add" title="Adicionar ativo">+</button>
+                </div>
+
+                <div id="error-message" class="error-message hidden mt-4"></div>
+
+                <button type="submit" class="btn-primary mt-6">Iniciar Duelo</button>
+            </form>
+            </div>
+            </div>
+        </div>
+
+        <!-- Seções em largura total -->
+        <div class="w-full mt-8">
+        <!-- Seção Como Funciona -->
+        <section id="como-funciona" class="mt-20 pt-16 border-t border-slate-200">
+            <div class="text-center mb-16">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-4 tracking-wide uppercase">Processo</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como o Duelo Funciona</h2>
+                <p class="text-slate-500 text-lg max-w-2xl mx-auto">Compare ativos em três passos simples. Análise fundamentalista automatizada em segundos.</p>
+            </div>
+
+            <!-- Timeline para Desktop -->
+            <div class="hidden lg:block relative max-w-6xl mx-auto">
+                <!-- Linha conectora -->
+                <div class="absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200"></div>
+                
+                <div class="grid grid-cols-3 gap-12">
+                    <!-- Passo 1 -->
+                    <div class="relative text-center">
+                        <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
+                            <span class="text-2xl font-bold text-white">1</span>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Escolha os Ativos</h3>
+                            <p class="text-sm text-slate-500 leading-relaxed">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
+                            <div class="mt-4 flex items-center justify-center gap-2">
+                                <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">PETR4</span>
+                                <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">VALE3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passo 2 -->
+                    <div class="relative text-center">
+                        <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
+                            <span class="text-2xl font-bold text-white">2</span>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Análise no Ringue</h3>
+                            <p class="text-sm text-slate-500 leading-relaxed">Nosso algoritmo consulta dados em tempo real e compara indicadores: P/L, Market Cap, EPS.</p>
+                            <div class="mt-4 flex items-center justify-center gap-2 text-sm">
+                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                <span class="text-slate-500">Dados BRAPI</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passo 3 -->
+                    <div class="relative text-center">
+                        <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
+                            <span class="text-2xl font-bold text-white">3</span>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.587 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.587 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.587 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.587 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-2">Resultado Clara</h3>
+                            <p class="text-sm text-slate-500 leading-relaxed">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
+                            <div class="mt-4 flex items-center justify-center gap-2">
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">WIN</span>
+                                <span class="text-slate-400 text-sm">vs</span>
+                                <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">LOSS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Versão Mobile (original) -->
+            <div class="lg:hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Passo 1 -->
+                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
+                            <span class="text-lg font-bold text-white">1</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">Escolha os Ativos</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">PETR4</span>
+                        <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">VALE3</span>
+                    </div>
+                </div>
+
+                <!-- Passo 2 -->
+                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
+                            <span class="text-lg font-bold text-white">2</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">Análise no Ringue</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Nosso algoritmo consulta dados em tempo real e compara indicadores fundamentais.</p>
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span class="text-slate-500">Dados BRAPI</span>
+                    </div>
+                </div>
+
+                <!-- Passo 3 -->
+                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
+                            <span class="text-lg font-bold text-white">3</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">Resultado Clara</h3>
+                    </div>
+                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">WIN</span>
+                        <span class="text-slate-400 text-sm">vs</span>
+                        <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">LOSS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disclaimer Profissional -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+                <div class="flex items-start gap-4">
+                    <div class="shrink-0">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            <span class="font-semibold text-slate-900">Fonte de dados:</span> BRAPI (API de dados do mercado financeiro brasileiro). 
+                            <span class="font-semibold text-slate-900">Importante:</span> Esta ferramenta realiza análise matemática puramente quantitativa 
+                            e <span class="underline">não constitui recomendação de investimento</span>. Sempre consulte um assessor credenciado antes de investir.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Duelos Populares -->
+        <section id="batalhas-populares" class="mt-20 pt-12 border-t border-slate-200">
+            <div class="text-center mb-10">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 mb-4">POPULARES</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">Duelos em Alta</h2>
+                <p class="text-slate-500 text-lg max-w-3xl mx-auto">Combinações mais comparadas pelos investidores. Clique para ver o resultado.</p>
+            </div>
+
+            <!-- Grid Desktop / Scroll Mobile -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory">
+                <!-- Card 1: PETR4 vs VALE3 -->
+                <a href="resultado.html?ativos=PETR4,VALE3" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 font-bold text-base">PET</div>
+                            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-700 font-bold text-base">VAL</div>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="text-center mb-3">
+                        <span class="text-lg font-bold text-slate-900">PETR4</span>
+                        <span class="mx-2 text-slate-400 font-medium">vs</span>
+                        <span class="text-lg font-bold text-slate-900">VALE3</span>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center">Commodities: Petróleo vs Minério</p>
+                </a>
+
+                <!-- Card 2: ITUB4 vs BBAS3 -->
+                <a href="resultado.html?ativos=ITUB4,BBAS3" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold text-base">ITU</div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-700 font-bold text-base">BBA</div>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="text-center mb-3">
+                        <span class="text-lg font-bold text-slate-900">ITUB4</span>
+                        <span class="mx-2 text-slate-400 font-medium">vs</span>
+                        <span class="text-lg font-bold text-slate-900">BBAS3</span>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center">Bancões: Itaú vs Banco do Brasil</p>
+                </a>
+
+                <!-- Card 3: MXRF11 vs HGLG11 (FIIs) -->
+                <a href="resultado.html?ativos=MXRF11,HGLG11" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 font-bold text-base">MX</div>
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-700 font-bold text-base">HG</div>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div class="text-center mb-3">
+                        <span class="text-lg font-bold text-slate-900">MXRF11</span>
+                        <span class="mx-2 text-slate-400 font-medium">vs</span>
+                        <span class="text-lg font-bold text-slate-900">HGLG11</span>
+                    </div>
+                    <p class="text-xs text-slate-500 text-center">FIIs: Recebíveis vs Logística</p>
+                </a>
+            </div>
+
+            <!-- Indicador de scroll mobile -->
+            <div class="flex justify-center mt-6 md:hidden">
+                <div class="flex gap-1.5">
+                    <div class="w-8 h-1 bg-slate-300 rounded-full"></div>
+                    <div class="w-8 h-1 bg-slate-200 rounded-full"></div>
+                    <div class="w-8 h-1 bg-slate-200 rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Botão Ver todas -->
+            <div class="text-center mt-10">
+                <a href="batalhas.html" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors group">
+                    Ver todas as batalhas
+                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <script src="js/components.js"></script>
+    
+    <!-- Logo Cache Script -->
+    <script>
+        // ========================================
+        // CACHE DE LOGOS - Compartilhado entre páginas
+        // ========================================
+        
+        function carregarLogo(ticker, tamanho = 'w-12 h-12') {
+            try {
+                const cache = localStorage.getItem('logos_ativos');
+                const logos = cache ? JSON.parse(cache) : {};
+                const logoUrl = logos[ticker.toUpperCase()];
+                
+                if (logoUrl) {
+                    return `<img src="${logoUrl}" alt="${ticker}" class="${tamanho} rounded-full object-contain bg-white border border-slate-200" onerror="this.style.display='none'; this.parentElement.querySelector('.logo-fallback').style.display='flex';">`;
+                }
+            } catch (e) {
+                console.error('[LOGO CACHE] Erro ao carregar:', e);
+            }
+            return '';
+        }
+        
+        function renderLogoComFallback(ticker, cor, tamanho = 'w-12 h-12') {
+            const imgHtml = carregarLogo(ticker, tamanho);
+            const inicial = ticker.substring(0, Math.min(3, ticker.length));
+            
+            return `
+                <div class="relative ${tamanho}">
+                    ${imgHtml}
+                    <div class="logo-fallback ${tamanho} ${cor} rounded-xl flex items-center justify-center font-bold text-sm" style="${imgHtml ? 'display:none;' : ''}">
+                        ${inicial}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Inicializar logos nos cards quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            // Atualizar logos nos cards de Duelos Populares
+            const cards = document.querySelectorAll('#batalhas-populares a[href*="resultado.html"]');
+            cards.forEach(card => {
+                const href = card.getAttribute('href');
+                const match = href.match(/ativos=([^&]+)/);
+                if (match) {
+                    const tickers = match[1].split(',');
+                    const avatarContainers = card.querySelectorAll('.flex.items-center.gap-4 > div');
+                    
+                    tickers.forEach((ticker, index) => {
+                        if (avatarContainers[index]) {
+                            // Mapear cores por ticker
+                            const colorMap = {
+                                'PETR4': 'bg-amber-100 text-amber-700',
+                                'VALE3': 'bg-red-100 text-red-700',
+                                'ITUB4': 'bg-blue-100 text-blue-700',
+                                'BBAS3': 'bg-yellow-100 text-yellow-700',
+                                'MXRF11': 'bg-purple-100 text-purple-700',
+                                'HGLG11': 'bg-green-100 text-green-700'
+                            };
+                            const cor = colorMap[ticker] || 'bg-slate-100 text-slate-700';
+                            avatarContainers[index].outerHTML = renderLogoComFallback(ticker, cor);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    
+    <!-- Autocomplete Script - DEVE vir antes do main.js -->
+    <script>
+        // Array de ativos populares da B3 (Ações e FIIs)
+        const ativosPopulares = [
+            // Ações - Petrobras
+            { ticker: 'PETR4', name: 'Petrobras PN', type: 'Ação' },
+            { ticker: 'PETR3', name: 'Petrobras ON', type: 'Ação' },
+            // Ações - Vale
+            { ticker: 'VALE3', name: 'Vale ON', type: 'Ação' },
+            // Ações - Bancos
+            { ticker: 'ITUB4', name: 'Itaú Unibanco PN', type: 'Ação' },
+            { ticker: 'BBDC4', name: 'Bradesco PN', type: 'Ação' },
+            { ticker: 'BBDC3', name: 'Bradesco ON', type: 'Ação' },
+            { ticker: 'BBAS3', name: 'Banco do Brasil ON', type: 'Ação' },
+            { ticker: 'SANB11', name: 'Santander Brasil', type: 'Ação' },
+            // Ações - Outras
+            { ticker: 'WEGE3', name: 'WEG ON', type: 'Ação' },
+            { ticker: 'ABEV3', name: 'Ambev ON', type: 'Ação' },
+            { ticker: 'MGLU3', name: 'Magazine Luiza ON', type: 'Ação' },
+            { ticker: 'VIIA3', name: 'Via ON', type: 'Ação' },
+            { ticker: 'CASH3', name: 'Meliuz ON', type: 'Ação' },
+            { ticker: 'HAPV3', name: 'Hapvida ON', type: 'Ação' },
+            { ticker: 'B3SA3', name: 'B3 ON', type: 'Ação' },
+            { ticker: 'GGBR4', name: 'Gerdau PN', type: 'Ação' },
+            { ticker: 'CSNA3', name: 'CSN ON', type: 'Ação' },
+            { ticker: 'USIM5', name: 'Usiminas PNA', type: 'Ação' },
+            { ticker: 'JBSS3', name: 'JBS ON', type: 'Ação' },
+            { ticker: 'BEEF3', name: 'Minerva ON', type: 'Ação' },
+            { ticker: 'BRFS3', name: 'BRF ON', type: 'Ação' },
+            { ticker: 'SUZB3', name: 'Suzano ON', type: 'Ação' },
+            { ticker: 'KLBN11', name: 'Klabin UNT', type: 'Ação' },
+            { ticker: 'TAEE11', name: 'Taesa UNT', type: 'Ação' },
+            { ticker: 'CMIG4', name: 'Cemig PN', type: 'Ação' },
+            { ticker: 'EGIE3', name: 'Engie Brasil ON', type: 'Ação' },
+            { ticker: 'CPLE6', name: 'Copel PNB', type: 'Ação' },
+            { ticker: 'RAIZ4', name: 'Raízen PN', type: 'Ação' },
+            { ticker: 'PRIO3', name: 'PetroRio ON', type: 'Ação' },
+            { ticker: 'RECV3', name: 'PetroRecôncavo ON', type: 'Ação' },
+            { ticker: 'RRRP3', name: '3R Petroleum ON', type: 'Ação' },
+            // FIIs
+            { ticker: 'MXRF11', name: 'Maxima Renda', type: 'FII' },
+            { ticker: 'KNCR11', name: 'Kinea Rendimentos', type: 'FII' },
+            { ticker: 'HGLG11', name: 'CSHG Logística', type: 'FII' },
+            { ticker: 'VISC11', name: 'Vinci Shopping Centers', type: 'FII' },
+            { ticker: 'XPLG11', name: 'XP Log', type: 'FII' },
+            { ticker: 'KNRI11', name: 'Kinea Índices', type: 'FII' },
+            { ticker: 'HGRE11', name: 'CSHG Real Estate', type: 'FII' },
+            { ticker: 'BTLG11', name: 'BTG Logística', type: 'FII' },
+            { ticker: 'CVBI11', name: 'VBI Cri', type: 'FII' },
+            { ticker: 'RBRR11', name: 'RBR Recebíveis', type: 'FII' },
+            { ticker: 'RBRP11', name: 'RBR Properties', type: 'FII' }
+        ];
+        
+        // Função para inicializar autocomplete em um input específico
+        // Tornar global para acesso de outros scripts
+        window.initAutocomplete = function(inputElement) {
+            const container = inputElement.closest('.autocomplete-container');
+            let dropdown = container.querySelector('.autocomplete-dropdown');
+            
+            // Se não tiver dropdown, criar um novo
+            if (!dropdown) {
+                dropdown = document.createElement('ul');
+                dropdown.className = 'autocomplete-dropdown hidden';
+                container.appendChild(dropdown);
+            }
+            
+            // Evento de input para filtrar
+            inputElement.addEventListener('input', (e) => {
+                const value = e.target.value.toUpperCase().trim();
+                
+                if (value.length < 1) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+                
+                // Filtrar ativos que começam com ou contêm o texto digitado
+                const filtrados = ativosPopulares.filter(ativo => 
+                    ativo.ticker.includes(value) || 
+                    ativo.name.toUpperCase().includes(value)
+                ).slice(0, 8); // Limitar a 8 resultados
+                
+                renderDropdown(dropdown, filtrados, inputElement);
+            });
+            
+            // Fechar dropdown ao clicar fora (adicionar apenas uma vez por documento)
+            if (!document.hasClickListener) {
+                document.addEventListener('click', (e) => {
+                    document.querySelectorAll('.autocomplete-dropdown').forEach(dd => {
+                        const ddContainer = dd.closest('.autocomplete-container');
+                        if (ddContainer && !ddContainer.contains(e.target)) {
+                            dd.classList.add('hidden');
+                        }
+                    });
+                });
+                document.hasClickListener = true;
+            }
+            
+            // Navegação por teclado
+            inputElement.addEventListener('keydown', (e) => {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                const activeItem = dropdown.querySelector('.autocomplete-item.active');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (!activeItem) {
+                        items[0]?.classList.add('active');
+                    } else {
+                        const next = activeItem.nextElementSibling;
+                        if (next) {
+                            activeItem.classList.remove('active');
+                            next.classList.add('active');
+                        }
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (activeItem) {
+                        const prev = activeItem.previousElementSibling;
+                        if (prev) {
+                            activeItem.classList.remove('active');
+                            prev.classList.add('active');
+                        }
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeItem) {
+                        activeItem.click();
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Função para configurar autocomplete em todos os inputs existentes (inicial)
+        function setupAutocomplete() {
+            const inputs = document.querySelectorAll('.asset-input');
+            inputs.forEach(input => window.initAutocomplete(input));
+        }
+        
+        // Função global configurarAutocomplete para uso externo (main.js)
+        window.configurarAutocomplete = function(inputElement) {
+            return window.initAutocomplete(inputElement);
+        }
+        
+        function renderDropdown(dropdown, items, input) {
+            if (items.length === 0) {
+                dropdown.innerHTML = '<li class="p-3 text-sm text-slate-500 text-center">Nenhum ativo encontrado</li>';
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            
+            dropdown.innerHTML = items.map(item => `
+                <li class="autocomplete-item" data-ticker="${item.ticker}">
+                    <span class="autocomplete-ticker">${item.ticker}</span>
+                    <span class="text-xs text-slate-400 ml-2">${item.name}</span>
+                    <span class="autocomplete-type">${item.type}</span>
+                </li>
+            `).join('');
+            
+            // Adicionar evento de clique em cada item
+            dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const ticker = item.dataset.ticker;
+                    input.value = ticker;
+                    dropdown.classList.add('hidden');
+                    
+                    // Focar no próximo input ou botão
+                    const inputs = document.querySelectorAll('.asset-input');
+                    const currentIndex = Array.from(inputs).indexOf(input);
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[currentIndex + 1].focus();
+                    } else {
+                        document.querySelector('.btn-primary')?.focus();
+                    }
+                });
+            });
+            
+            dropdown.classList.remove('hidden');
+        }
+        
+        // Inicializar quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            setupAutocomplete();
+        });
+    </script>
+
+    <!-- Footer injetado via components.js -->
+
+    <!-- Main App - DEPOIS do autocomplete -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
