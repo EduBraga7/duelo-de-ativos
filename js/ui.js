@@ -19,7 +19,7 @@ export function createVsElement() {
 export function createAssetInput(container) {
     // Criar container do autocomplete
     const autocompleteContainer = document.createElement('div');
-    autocompleteContainer.className = 'autocomplete-container';
+    autocompleteContainer.className = 'autocomplete-container animate-fade-in';
     
     // Criar input
     const input = document.createElement('input');

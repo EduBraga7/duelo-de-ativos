@@ -32,17 +32,31 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     text-transform: uppercase;
     text-align: center;
-    font-weight: 500;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background-color: #fff;
+    color: #1a1a1a;
+    font-feature-settings: 'tnum' 1;
+}
+
+html.dark .asset-input {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
 }
 
 .asset-input:focus {
-    border-color: #0d0d0d;
-    box-shadow: 0 0 0 3px rgba(13, 13, 13, 0.05);
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
 }
 
 .asset-input::placeholder {
     color: #999;
     text-transform: none;
+}
+
+html.dark .asset-input::placeholder {
+    color: #64748b;
 }
 
 /* VS Text */
@@ -78,8 +92,9 @@
 }
 
 .btn-add:hover:not(:disabled) {
-    border-color: #0d0d0d;
-    color: #0d0d0d;
+    border-color: #f97316;
+    color: #f97316;
+    background-color: #fff7ed;
 }
 
 .btn-add:disabled {
@@ -92,18 +107,20 @@
     width: 100%;
     padding: 1rem 2rem;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #fff;
-    background: #0d0d0d;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     border: none;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3), 0 2px 4px -2px rgba(249, 115, 22, 0.2);
 }
 
 .btn-primary:hover {
-    background: #333;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
     transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4), 0 4px 6px -4px rgba(249, 115, 22, 0.3);
 }
 
 .btn-primary:active {
@@ -118,6 +135,12 @@
     border-radius: 8px;
     color: #dc2626;
     font-size: 0.9375rem;
+}
+
+html.dark .error-message {
+    background: #450a0a;
+    border-color: #7f1d1d;
+    color: #fca5a5;
 }
 
 .error-message.hidden {
@@ -191,4 +214,41 @@
         padding: 1rem 1.25rem;
         font-size: 1.0625rem;
     }
+}
+
+/* ========================================
+   SKELETON LOADING
+   ======================================== */
+
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 0.375rem;
+}
+
+html.dark .skeleton {
+    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+    background-size: 200% 100%;
+}
+
+.skeleton-input {
+    height: 3.5rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-button {
+    height: 3rem;
+    width: 100%;
+    margin-top: 1rem;
 }

@@ -1,45 +1,111 @@
 import { indicators } from './config.js';
 import { determineWinner, formatValue } from './utils.js';
 
+// Função para determinar vencedor geral do duelo
+function determineOverallWinner(assetsData) {
+    if (assetsData.length !== 2) return null;
+    
+    let score1 = 0;
+    let score2 = 0;
+    
+    indicators.forEach(indicator => {
+        const val1 = assetsData[0][indicator.key];
+        const val2 = assetsData[1][indicator.key];
+        
+        if (val1 !== null && val2 !== null) {
+            const results = determineWinner([val1, val2], indicator.higherIsBetter, indicator.allowND);
+            if (results[0] === 'win') score1++;
+            if (results[1] === 'win') score2++;
+        }
+    });
+    
+    if (score1 > score2) return 0;
+    if (score2 > score1) return 1;
+    return null; // Empate
+}
+
 export function renderHero(assetsData, prices = null) {
     const heroContainer = document.getElementById('assets-hero');
     heroContainer.innerHTML = '';
+    
+    // Determinar vencedor geral
+    const winnerIndex = determineOverallWinner(assetsData);
+
+    // Criar container do ringue
+    const ringueContainer = document.createElement('div');
+    ringueContainer.className = 'ringue-container';
+    
+    // Badge de VS no centro
+    const vsBadge = document.createElement('div');
+    vsBadge.className = 'ringue-vs';
+    vsBadge.textContent = 'VS';
+    ringueContainer.appendChild(vsBadge);
 
     assetsData.forEach((asset, index) => {
-        const column = document.createElement('div');
-        column.className = 'asset-column flex flex-col items-center justify-center';
-
+        const side = document.createElement('div');
+        side.className = index === 0 ? 'ringue-left' : 'ringue-right';
+        
+        // Verificar se é o vencedor
+        const isWinner = winnerIndex === index;
+        
         let logoHtml;
         if (asset.logoUrl) {
-            logoHtml = `<img src="${asset.logoUrl}" alt="${asset.ticker}" class="w-16 h-16 rounded-full mx-auto mb-3 border p-1 bg-white object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            logoHtml = `<img src="${asset.logoUrl}" alt="${asset.ticker}" class="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-white shadow-lg bg-white object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
 
-        const fallbackHtml = `<div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-xl font-bold text-slate-600 mb-3 ${asset.logoUrl ? 'hidden' : ''}">${asset.logo}</div>`;
+        const fallbackHtml = `<div class="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-2xl font-bold text-slate-700 mb-3 ${asset.logoUrl ? 'hidden' : ''}">${asset.logo}</div>`;
 
         // Preço em tempo real (se disponível)
         const priceData = prices?.[asset.ticker];
         const priceHtml = priceData ? `
             <div class="mt-2 text-center" data-ticker="${asset.ticker}">
-                <span class="price-value text-lg font-bold text-slate-900">R$ ${priceData.price.toFixed(2)}</span>
-                <span class="price-change text-sm ${priceData.change >= 0 ? 'text-green-600' : 'text-red-600'}">
+                <span class="price-value text-xl font-bold text-slate-900 dark:text-white">R$ ${priceData.price.toFixed(2)}</span>
+                <span class="price-change text-sm ${priceData.change >= 0 ? 'text-green-600' : 'text-red-600'} block">
                     ${priceData.change >= 0 ? '+' : ''}${priceData.changePercent.toFixed(2)}%
                 </span>
             </div>
         ` : `
             <div class="mt-2 text-center" data-ticker="${asset.ticker}">
-                <span class="price-value text-lg font-bold text-slate-400">-</span>
+                <span class="price-value text-xl font-bold text-slate-400">-</span>
             </div>
         `;
+        
+        // Badge de vencedor
+        const winnerBadge = isWinner ? `
+            <div class="winner-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+                Vencedor
+            </div>
+        ` : '';
+        
+        // Sparkline simulado (em produção viria da API)
+        const sparklineData = [10, 12, 11, 14, 13, 15, 16, 18, 17, 19, 20, 22];
+        const isUpTrend = index === 0 ? Math.random() > 0.3 : Math.random() > 0.5;
+        const sparklineHtml = createSparkline(sparklineData, isUpTrend);
+        
+        // Seta de tendência
+        const trendArrow = isUpTrend ? 
+            '<span class="trend-arrow up">▲</span>' : 
+            '<span class="trend-arrow down">▼</span>';
 
-        column.innerHTML = `
+        side.innerHTML = `
+            ${winnerBadge}
             ${asset.logoUrl ? logoHtml : ''}
             ${fallbackHtml}
-            <h2 class="asset-ticker">${asset.ticker}</h2>
-            <p class="text-slate-500 text-sm mt-1 text-center max-w-[150px] truncate">${asset.name || asset.ticker}</p>
+            <h2 class="font-mono text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">${asset.ticker}</h2>
+            <p class="text-slate-600 dark:text-slate-300 text-sm font-medium mt-1 text-center max-w-[200px] truncate">${asset.name || asset.ticker}</p>
             ${priceHtml}
+            <div class="sparkline-container">
+                ${sparklineHtml}
+                ${trendArrow}
+            </div>
         `;
-        heroContainer.appendChild(column);
+        ringueContainer.appendChild(side);
     });
+    
+    heroContainer.appendChild(ringueContainer);
 }
 
 export function updatePrices(prices) {
@@ -105,31 +171,101 @@ export function renderComparisonTable(assetsData) {
         row.className = 'comparison-row';
         row.style.setProperty('--num-assets', numAssets);
         
-        const label = document.createElement('div');
-        label.className = 'indicator-label';
-        label.textContent = indicator.label;
-        row.appendChild(label);
+        // Label com tooltip
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'indicator-label tooltip-container';
         
-        const valuesContainer = document.createElement('div');
-        valuesContainer.className = 'indicator-values-container';
-        valuesContainer.style.setProperty('--num-assets', numAssets);
+        const labelText = document.createElement('span');
+        labelText.textContent = indicator.label;
+        labelContainer.appendChild(labelText);
         
+        // Ícone de info
+        const infoIcon = document.createElement('svg');
+        infoIcon.className = 'tooltip-icon';
+        infoIcon.setAttribute('viewBox', '0 0 20 20');
+        infoIcon.setAttribute('fill', 'currentColor');
+        infoIcon.innerHTML = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />';
+        labelContainer.appendChild(infoIcon);
+        
+        // Tooltip
+        if (indicator.description) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = indicator.description;
+            labelContainer.appendChild(tooltip);
+        }
+        
+        row.appendChild(labelContainer);
+        
+        // Calcular valores para barras de progresso (apenas para 2 ativos)
         const values = assetsData.map(a => a[indicator.key]);
+        const numericValues = values.map(v => {
+            if (v === null || v === undefined || v === 'N/D') return null;
+            const num = parseFloat(v);
+            return isNaN(num) ? null : num;
+        });
+        
+        const hasNumericValues = numericValues.some(v => v !== null);
+        let maxValue = 0;
+        if (hasNumericValues && numAssets === 2) {
+            const validValues = numericValues.filter(v => v !== null);
+            maxValue = validValues.length > 0 ? Math.max(...validValues) : 0;
+        }
+        
         const results = determineWinner(values, indicator.higherIsBetter, indicator.allowND);
         
         values.forEach((value, index) => {
-            const cell = document.createElement('div');
             const formattedValue = formatValue(value, indicator.format, indicator.suffix, indicator.allowND);
             
+            // Criar célula com valor e barra de progresso
+            const cell = document.createElement('div');
+            cell.className = 'indicator-cell';
+            
             if (formattedValue === null && indicator.allowND) {
-                cell.className = 'indicator-value na';
-                cell.textContent = 'N/D';
+                cell.innerHTML = `
+                    <div class="indicator-value na">N/D</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill neutral" style="width: 0%"></div>
+                        </div>
+                    </div>
+                `;
             } else {
-                cell.className = `indicator-value ${results[index]}`;
-                cell.textContent = formattedValue !== null ? formattedValue : '-';
+                const displayValue = formattedValue !== null ? formattedValue : '-';
+                const resultClass = results[index];
+                
+                // Calcular porcentagem para barra de progresso (apenas 2 ativos)
+                let progressWidth = 0;
+                let progressPercentage = '';
+                if (numAssets === 2 && hasNumericValues && maxValue > 0) {
+                    const currentValue = numericValues[index];
+                    if (currentValue !== null) {
+                        progressWidth = (currentValue / maxValue) * 100;
+                        progressPercentage = `${Math.round(progressWidth)}%`;
+                    }
+                }
+                
+                const progressBarHtml = numAssets === 2 && hasNumericValues ? `
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill ${resultClass}" style="width: ${progressWidth}%"></div>
+                        </div>
+                        <span class="progress-percentage">${progressPercentage}</span>
+                    </div>
+                ` : '';
+                
+                // Seta de tendência para o resultado
+                const trendArrowHtml = resultClass === 'win' ? 
+                    '<span class="trend-arrow up">▲</span>' :
+                    resultClass === 'loss' ? 
+                    '<span class="trend-arrow down">▼</span>' : '';
+                
+                cell.innerHTML = `
+                    <div class="indicator-value-with-bar ${resultClass}">${displayValue}${trendArrowHtml}</div>
+                    ${progressBarHtml}
+                `;
             }
             
-            valuesContainer.appendChild(cell);
             row.appendChild(cell);
         });
         
@@ -168,7 +304,72 @@ export function renderEmptyState() {
     const tableContainer = document.getElementById('comparison-table');
     const ctaContainer = document.getElementById('cta-section');
     
-    heroContainer.innerHTML = '<p class="text-center text-slate-500 py-8">Carregando ativos...</p>';
-    tableContainer.innerHTML = '';
+    // Skeleton para o ringue
+    heroContainer.innerHTML = `
+        <div class="ringue-container">
+            <div class="ringue-skeleton">
+                <div class="ringue-skeleton-left">
+                    <div class="skeleton skeleton-circle"></div>
+                    <div class="skeleton skeleton-title" style="width: 100px;"></div>
+                    <div class="skeleton skeleton-text" style="width: 80px;"></div>
+                </div>
+                <div class="ringue-vs">VS</div>
+                <div class="ringue-skeleton-right">
+                    <div class="skeleton skeleton-circle"></div>
+                    <div class="skeleton skeleton-title" style="width: 100px;"></div>
+                    <div class="skeleton skeleton-text" style="width: 80px;"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Skeleton para a tabela
+    tableContainer.innerHTML = `
+        <div class="p-4">
+            ${Array(6).fill(0).map(() => `
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="skeleton skeleton-text" style="width: 100px;"></div>
+                    <div class="flex-1">
+                        <div class="skeleton skeleton-row"></div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
     ctaContainer.innerHTML = '';
+}
+
+// Função para criar sparkline SVG
+function createSparkline(dataPoints, isUp = true) {
+    if (!dataPoints || dataPoints.length < 2) return '';
+    
+    const width = 60;
+    const height = 24;
+    const padding = 2;
+    
+    const min = Math.min(...dataPoints);
+    const max = Math.max(...dataPoints);
+    const range = max - min || 1;
+    
+    // Gerar pontos para o SVG
+    const points = dataPoints.map((val, i) => {
+        const x = (i / (dataPoints.length - 1)) * (width - padding * 2) + padding;
+        const y = height - padding - ((val - min) / range) * (height - padding * 2);
+        return `${x},${y}`;
+    });
+    
+    const pathD = `M ${points.join(' L ')}`;
+    const fillD = `M ${points[0]} L ${points.join(' L ')} L ${width - padding},${height} L ${padding},${height} Z`;
+    const direction = isUp ? 'up' : 'down';
+    
+    return `
+        <div class="sparkline">
+            <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                <path class="sparkline-fill ${direction}" d="${fillD}" />
+                <path class="sparkline-path ${direction}" d="${pathD}" />
+                <circle class="sparkline-dot ${direction}" cx="${width - padding}" cy="${points[points.length - 1].split(',')[1]}" />
+            </svg>
+        </div>
+    `;
 }

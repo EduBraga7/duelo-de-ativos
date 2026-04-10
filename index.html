@@ -4,22 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duelo de Ativos</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        /* Estilos globais de tipografia */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .font-display {
+            font-family: 'Inter', system-ui, sans-serif;
+            letter-spacing: -0.02em;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-feature-settings: 'tnum' 1;
+        }
+        
         /* Estilos específicos da página inicial */
         .vs-badge {
             display: flex;
             align-items: center;
             justify-content: center;
             align-self: center;
-            width: 40px;
-            height: 40px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #64748b;
-            background: #f1f5f9;
+            width: 44px;
+            height: 44px;
+            font-size: 0.875rem;
+            font-weight: 900;
+            color: white;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             border-radius: 50%;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.4), 0 2px 4px -2px rgba(249, 115, 22, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .asset-input {
@@ -69,19 +106,27 @@
         .btn-primary {
             width: 100%;
             padding: 1rem 2rem;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: -0.01em;
             color: white;
-            background: #0f172a;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
             border: none;
-            border-radius: 0.75rem;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3), 0 2px 4px -2px rgba(249, 115, 22, 0.2);
         }
         
         .btn-primary:hover {
-            background: #1e293b;
+            background: #ea580c;
             transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4), 0 4px 6px -4px rgba(249, 115, 22, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
         }
         
         .error-message {
@@ -132,7 +177,11 @@
         
         .autocomplete-item:hover,
         .autocomplete-item.active {
-            background-color: #f1f5f9;
+            background-color: #fff7ed;
+        }
+        
+        .autocomplete-item.active .autocomplete-ticker {
+            color: #ea580c;
         }
         
         .autocomplete-ticker {
@@ -148,20 +197,136 @@
             padding: 0.125rem 0.5rem;
             border-radius: 9999px;
         }
+        
+        .autocomplete-item.active .autocomplete-type {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+        
+        /* ========================================
+           ANIMAÇÕES E MICRO-INTERAÇÕES
+           ======================================== */
+        
+        /* Shake animation para input inválido */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        
+        .input-shake {
+            animation: shake 0.4s ease-in-out;
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        /* FadeIn + SlideUp para novos inputs */
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fadeInSlideUp 0.3s ease-out forwards;
+        }
+        
+        /* Loading spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        /* Stagger animation para cards */
+        @keyframes staggerFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stagger-card {
+            opacity: 0;
+            animation: staggerFadeIn 0.5s ease-out forwards;
+        }
+        
+        .stagger-card:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-card:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-card:nth-child(3) { animation-delay: 0.3s; }
+        
+        /* Ícones animados na seção Como Funciona */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .icon-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .icon-float-delay-1 { animation-delay: 0.5s; }
+        .icon-float-delay-2 { animation-delay: 1s; }
+        
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .icon-pulse {
+            animation: pulse-soft 2s ease-in-out infinite;
+        }
+        
+        /* Hover scale suave nos cards */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 flex flex-col">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col transition-colors duration-300">
     <!-- Header injetado via components.js -->
 
     <main class="flex-grow flex flex-col items-center justify-start px-4 py-8 pt-20">
         <div class="w-full max-w-7xl mx-auto">
             <div class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-3">Novo Duelo</h1>
-                <p class="text-slate-500 text-lg">Coloque as melhores ações e FIIs no ringue. Compare indicadores lado a lado.</p>
+                <h1 class="font-display text-4xl md:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white mb-3">Novo Duelo</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Coloque as melhores ações e FIIs no ringue. Compare indicadores lado a lado.</p>
             </div>
 
             <div class="max-w-md mx-auto">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-slate-200 dark:border-slate-800 p-6 md:p-8">
             <form id="duel-form" class="duel-form">
                 <div id="assets-container" class="flex flex-col gap-2">
                     <div class="autocomplete-container">
@@ -190,11 +355,11 @@
         <!-- Seções em largura total -->
         <div class="w-full mt-8">
         <!-- Seção Como Funciona -->
-        <section id="como-funciona" class="mt-20 pt-16 border-t border-slate-200">
+        <section id="como-funciona" class="mt-20 pt-16 border-t border-slate-200 dark:border-slate-800">
             <div class="text-center mb-16">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-4 tracking-wide uppercase">Processo</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como o Duelo Funciona</h2>
-                <p class="text-slate-500 text-lg max-w-2xl mx-auto">Compare ativos em três passos simples. Análise fundamentalista automatizada em segundos.</p>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 mb-4 tracking-wide uppercase">Processo</span>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">Como o Duelo Funciona</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium max-w-2xl mx-auto">Compare ativos em três passos simples. Análise fundamentalista automatizada em segundos.</p>
             </div>
 
             <!-- Timeline para Desktop -->
@@ -208,17 +373,17 @@
                         <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
                             <span class="text-2xl font-bold text-white">1</span>
                         </div>
-                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
-                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-4 icon-float">
+                                <svg class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-2">Escolha os Ativos</h3>
-                            <p class="text-sm text-slate-500 leading-relaxed">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
+                            <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Escolha os Ativos</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
                             <div class="mt-4 flex items-center justify-center gap-2">
-                                <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">PETR4</span>
-                                <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">VALE3</span>
+                                <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono text-slate-600 dark:text-slate-300">PETR4</span>
+                                <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono text-slate-600 dark:text-slate-300">VALE3</span>
                             </div>
                         </div>
                     </div>
@@ -228,17 +393,17 @@
                         <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
                             <span class="text-2xl font-bold text-white">2</span>
                         </div>
-                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
-                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-4 icon-float icon-float-delay-1">
+                                <svg class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-2">Análise no Ringue</h3>
-                            <p class="text-sm text-slate-500 leading-relaxed">Nosso algoritmo consulta dados em tempo real e compara indicadores: P/L, Market Cap, EPS.</p>
+                            <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Análise no Ringue</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Nosso algoritmo consulta dados em tempo real e compara indicadores: P/L, Market Cap, EPS.</p>
                             <div class="mt-4 flex items-center justify-center gap-2 text-sm">
                                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <span class="text-slate-500">Dados BRAPI</span>
+                                <span class="text-slate-500 dark:text-slate-400">Dados BRAPI</span>
                             </div>
                         </div>
                     </div>
@@ -248,18 +413,18 @@
                         <div class="relative z-10 w-16 h-16 mx-auto bg-slate-900 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
                             <span class="text-2xl font-bold text-white">3</span>
                         </div>
-                        <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
-                            <div class="w-10 h-10 mx-auto bg-slate-50 rounded-lg flex items-center justify-center mb-4">
-                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div class="w-10 h-10 mx-auto bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-4 icon-float icon-float-delay-2">
+                                <svg class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.587 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.587 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.587 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.587 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-2">Resultado Clara</h3>
-                            <p class="text-sm text-slate-500 leading-relaxed">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
+                            <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Resultado Clara</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
                             <div class="mt-4 flex items-center justify-center gap-2">
-                                <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">WIN</span>
-                                <span class="text-slate-400 text-sm">vs</span>
-                                <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">LOSS</span>
+                                <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-semibold">WIN</span>
+                                <span class="text-slate-400 dark:text-slate-500 text-sm">vs</span>
+                                <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs font-semibold">LOSS</span>
                             </div>
                         </div>
                     </div>
@@ -269,64 +434,70 @@
             <!-- Versão Mobile (original) -->
             <div class="lg:hidden grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Passo 1 -->
-                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
-                            <span class="text-lg font-bold text-white">1</span>
+                        <div class="w-10 h-10 bg-slate-900 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 icon-float">
+                            <svg class="w-5 h-5 text-white dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900">Escolha os Ativos</h3>
+                        <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white tracking-tight">Escolha os Ativos</h3>
                     </div>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-3">Digite os tickers das ações ou FIIs. Nosso autocomplete sugere ativos enquanto você digita.</p>
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">PETR4</span>
-                        <span class="px-2 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600">VALE3</span>
+                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono font-medium text-slate-600 dark:text-slate-300">PETR4</span>
+                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono font-medium text-slate-600 dark:text-slate-300">VALE3</span>
                     </div>
                 </div>
 
                 <!-- Passo 2 -->
-                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
-                            <span class="text-lg font-bold text-white">2</span>
+                        <div class="w-10 h-10 bg-slate-900 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 icon-float icon-float-delay-1">
+                            <svg class="w-5 h-5 text-white dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900">Análise no Ringue</h3>
+                        <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white tracking-tight">Análise no Ringue</h3>
                     </div>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Nosso algoritmo consulta dados em tempo real e compara indicadores fundamentais.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-3">Nosso algoritmo consulta dados em tempo real e compara indicadores fundamentais.</p>
                     <div class="flex items-center gap-2 text-sm">
                         <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                        <span class="text-slate-500">Dados BRAPI</span>
+                        <span class="text-slate-500 dark:text-slate-400">Dados BRAPI</span>
                     </div>
                 </div>
 
                 <!-- Passo 3 -->
-                <div class="bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
-                            <span class="text-lg font-bold text-white">3</span>
+                        <div class="w-10 h-10 bg-slate-900 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 icon-float icon-float-delay-2">
+                            <svg class="w-5 h-5 text-white dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.587 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.587 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.587 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.587 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                            </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900">Resultado Clara</h3>
+                        <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white tracking-tight">Resultado Clara</h3>
                     </div>
-                    <p class="text-sm text-slate-500 leading-relaxed mb-3">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-3">Visualize a comparação lado a lado. Indicadores superiores destacados em verde.</p>
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold">WIN</span>
-                        <span class="text-slate-400 text-sm">vs</span>
-                        <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">LOSS</span>
+                        <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-semibold">WIN</span>
+                        <span class="text-slate-400 dark:text-slate-500 text-sm">vs</span>
+                        <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs font-semibold">LOSS</span>
                     </div>
                 </div>
             </div>
 
             <!-- Disclaimer Profissional -->
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+            <div class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
                 <div class="flex items-start gap-4">
                     <div class="shrink-0">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm text-slate-600 leading-relaxed">
-                            <span class="font-semibold text-slate-900">Fonte de dados:</span> BRAPI (API de dados do mercado financeiro brasileiro). 
-                            <span class="font-semibold text-slate-900">Importante:</span> Esta ferramenta realiza análise matemática puramente quantitativa 
+                        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <span class="font-semibold text-slate-900 dark:text-slate-200">Fonte de dados:</span> BRAPI (API de dados do mercado financeiro brasileiro). 
+                            <span class="font-semibold text-slate-900 dark:text-slate-200">Importante:</span> Esta ferramenta realiza análise matemática puramente quantitativa 
                             e <span class="underline">não constitui recomendação de investimento</span>. Sempre consulte um assessor credenciado antes de investir.
                         </p>
                     </div>
@@ -335,17 +506,26 @@
         </section>
 
         <!-- Seção Duelos Populares -->
-        <section id="batalhas-populares" class="mt-20 pt-12 border-t border-slate-200">
+        <section id="batalhas-populares" class="mt-20 pt-12 border-t border-slate-200 dark:border-slate-800">
             <div class="text-center mb-10">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 mb-4">POPULARES</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">Duelos em Alta</h2>
-                <p class="text-slate-500 text-lg max-w-3xl mx-auto">Combinações mais comparadas pelos investidores. Clique para ver o resultado.</p>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 mb-4 tracking-wide uppercase">Populares</span>
+                <h2 class="font-display text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">Duelos em Alta</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium max-w-3xl mx-auto">Combinações mais comparadas pelos investidores. Clique para ver o resultado.</p>
             </div>
 
             <!-- Grid Desktop / Scroll Mobile -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory">
                 <!-- Card 1: PETR4 vs VALE3 -->
-                <a href="resultado.html?ativos=PETR4,VALE3" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                <a href="resultado.html?ativos=PETR4,VALE3" class="stagger-card group relative bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-2xl hover:shadow-orange-100 dark:hover:shadow-orange-900/20 hover:-translate-y-1 overflow-hidden">
+                    <!-- Badge Trending -->
+                    <div class="absolute top-4 right-4">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+                            </svg>
+                            Trending
+                        </span>
+                    </div>
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 font-bold text-base">PET</div>
@@ -356,15 +536,25 @@
                         </svg>
                     </div>
                     <div class="text-center mb-3">
-                        <span class="text-lg font-bold text-slate-900">PETR4</span>
-                        <span class="mx-2 text-slate-400 font-medium">vs</span>
-                        <span class="text-lg font-bold text-slate-900">VALE3</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">PETR4</span>
+                        <span class="mx-2 text-slate-400 dark:text-slate-500 font-medium">vs</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">VALE3</span>
                     </div>
-                    <p class="text-xs text-slate-500 text-center">Commodities: Petróleo vs Minério</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 text-center">Commodities: Petróleo vs Minério</p>
                 </a>
 
                 <!-- Card 2: ITUB4 vs BBAS3 -->
-                <a href="resultado.html?ativos=ITUB4,BBAS3" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                <a href="resultado.html?ativos=ITUB4,BBAS3" class="stagger-card group relative bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-2xl hover:shadow-blue-100 dark:hover:shadow-blue-900/20 hover:-translate-y-1 overflow-hidden">
+                    <!-- Badge Mais Comparado -->
+                    <div class="absolute top-4 right-4">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Top 3
+                        </span>
+                    </div>
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold text-base">ITU</div>
@@ -375,15 +565,24 @@
                         </svg>
                     </div>
                     <div class="text-center mb-3">
-                        <span class="text-lg font-bold text-slate-900">ITUB4</span>
-                        <span class="mx-2 text-slate-400 font-medium">vs</span>
-                        <span class="text-lg font-bold text-slate-900">BBAS3</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">ITUB4</span>
+                        <span class="mx-2 text-slate-400 dark:text-slate-500 font-medium">vs</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">BBAS3</span>
                     </div>
-                    <p class="text-xs text-slate-500 text-center">Bancões: Itaú vs Banco do Brasil</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 text-center">Bancões: Itaú vs Banco do Brasil</p>
                 </a>
 
                 <!-- Card 3: MXRF11 vs HGLG11 (FIIs) -->
-                <a href="resultado.html?ativos=MXRF11,HGLG11" class="group relative bg-slate-50 hover:bg-white rounded-xl p-8 border border-slate-200 hover:border-slate-300 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-lg">
+                <a href="resultado.html?ativos=MXRF11,HGLG11" class="stagger-card group relative bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-300 snap-start shrink-0 md:shrink hover:shadow-2xl hover:shadow-purple-100 dark:hover:shadow-purple-900/20 hover:-translate-y-1 overflow-hidden">
+                    <!-- Badge FII -->
+                    <div class="absolute top-4 right-4">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            FII
+                        </span>
+                    </div>
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 font-bold text-base">MX</div>
@@ -394,11 +593,11 @@
                         </svg>
                     </div>
                     <div class="text-center mb-3">
-                        <span class="text-lg font-bold text-slate-900">MXRF11</span>
-                        <span class="mx-2 text-slate-400 font-medium">vs</span>
-                        <span class="text-lg font-bold text-slate-900">HGLG11</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">MXRF11</span>
+                        <span class="mx-2 text-slate-400 dark:text-slate-500 font-medium">vs</span>
+                        <span class="font-mono text-lg font-bold text-slate-900 dark:text-white tracking-tight">HGLG11</span>
                     </div>
-                    <p class="text-xs text-slate-500 text-center">FIIs: Recebíveis vs Logística</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 text-center">FIIs: Recebíveis vs Logística</p>
                 </a>
             </div>
 
@@ -413,7 +612,7 @@
 
             <!-- Botão Ver todas -->
             <div class="text-center mt-10">
-                <a href="batalhas.html" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors group">
+                <a href="batalhas.html" class="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 group">
                     Ver todas as batalhas
                     <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
